@@ -27,6 +27,86 @@
 
       <div id='articles'>
 
+        <!--- ========================================================= --->
+        <h2>
+          Fixing video tearing in X (and a glance at Wayland)</h2>
+        <p class='posted'>
+          <em>Posted November 21st 2016</em></p>
+
+        <p>
+          I've used pretty much the same X setup since 1993. I'm happy
+          with it. I want minimal window decorations, no click to
+          focus and alt+tab to get me a new xterm and three virtual
+          desktops. I don't want menus, status bars, clocks, animated
+          window movement or anything like that.
+        </p>
+
+        <p>
+          But... one thing was annoying me. When scrolling some sites,
+          such as stack overflow, the browser window gets a diagonal
+          tear in it. It's easiest to see in video, wikipedia has a
+          reasonable <a href='https://en.wikipedia.org/wiki/Screen_tearing'>
+          article with pictures</a>. Fixing this should be easy:
+          redraw the screen during the vertical blanking interval.
+          That's not a new idea, even the Commodore 64 had an
+          interrupt you could trigger when a particular scanline was
+          passed.
+        </p>
+
+        <p>
+          The fix I ended up using was to create /etc/X11/xorg.conf with
+          the TearFree option set:
+        </p>
+
+        <pre>
+          # 2016-11-21 Debian default Xorg install doesn't have this file.
+          #            MML added it to get the TearFree option.
+          Section "Device"
+          Identifier "Intel inbuilt graphics"
+          Driver "intel"
+          Option "TearFree" "true"
+          EndSection
+        </pre>
+
+        <p>
+          Fixes the problem completely. But... before I did that, I
+          also tried a few other fixes.
+        </p>
+
+        <p>
+          First, I tried switching to 'Wayland'. Wayland is a
+          replacement for X. I've been meaning to take a look at it
+          for a while. It's in Debian testing, so all I did is install
+          'weston', shut down X and start 'weston-launch'. That works
+          fine in the sense that it gets me a display and I can start
+          a terminal in it. But nothing else works. No emacs outside
+          the terminal, no firefox, no mplayer. I could probably get
+          some or all of those to work with some more fiddling, but
+          I'm not <em>that</em> interested. I'll probably take another
+          look at Wayland in a year.
+        </p>
+
+        <p>
+          Next, I tried running 'compton', which basically does the
+          same thing as the TearFree option in the X server, but at a
+          higher level. Compton changed the colour of my root window,
+          but didn't fix the tearing. I tried the --dbe option and
+          each of the five --vsync options. Didn't work. It also
+          seemed to freeze up twice, getting my machine back required
+          'kill -9' from a console, so I gave on on 'compton' fairly quickly.
+        </p>
+
+        <p>
+          Finally, I tried the 'xfce4' window manager. It has a
+          non-default option to do compositing, which is again
+          basically the same thing as the TearFree option in the X
+          server. It's in Manager/window manager tweaks/compositor/
+          Works fine, but I didn't really want to switch window managers.
+          I'm perfectly happy with openbox.
+        </p>
+
+
+        <!--- ========================================================= --->
         <h2>
           Using a 'bash' function to silence GTK 3.20</h2>
         <p class='posted'>
