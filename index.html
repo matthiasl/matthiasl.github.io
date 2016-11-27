@@ -26,6 +26,71 @@
       </div>
 
       <div id='articles'>
+        <!--- ========================================================= --->
+        <h2>
+          Fixing Linux/Windows dual boot on my Thinkpad 13</h2>
+        <p class='posted'>
+          <em>Posted November 28th 2016</em></p>
+
+        <p>
+          My Thinkpad 13 dual-boots Windows and Debian. Yesterday,
+          Windows update ran and after that 'grub' stopped appearing
+          at boot time. Annoying.
+        </p>
+
+        <p>
+          I fixed it by downloading the debian <em>stretch</em> CD,
+          the first one, putting it on a USB stick:
+        </p>
+
+        <pre>
+          wget http://cdimage.debian.org/cdimage/stretch_di_alpha8/amd64/iso-cd/debian-stretch-DI-alpha8-amd64-xfce-CD-1.iso
+          dd if=debian-stretch-DI-alpha8-amd64-xfce-CD-1.iso of=/dev/sdXXX bs=4M
+        </pre>
+
+        <p>
+        In the second line above, change 'sdXXX' to the USB device. In my
+        case 'sdb'. To boot from USB, I fiddled with the BIOS settings:
+        </p>
+
+        <pre>
+          secureboot: disabled
+          UEFI/legacy: both
+          UEFI first
+        </pre>
+
+        <p>
+          I made sure the USB stick was in the boot list and booted
+          the Debian installer, put it in rescue mode and re-installed
+          'grub' to sda (the SSD).
+        </p>
+
+        <p>
+          Pitfall: you can't use the 'jessie' install CD to rescue a
+          stretch installation. Attempting to run the grub reinstall
+          gets an error.
+        </p>
+
+        <p>
+          Pitfall: Lenovo's BIOS seems buggy. If you plug in a USB stick
+          while in the boot menu, the BIOS hangs, sometimes.
+        </p>
+
+        <p>
+          Pitfall: Lenovo's BIOS doesn't tell you when a boot attempt
+          failed, it just bounces back to the boot screen.
+        </p>
+
+        <p>
+          Annoyance: Windows (Windows 10, I think) seemed to do a
+          major update without warning. It just said "Working on
+          updates 15%. Don't turn off your PC. This will take a while.
+          Your PC will restart several times." It ended up downloading
+          things for five or ten minutes (on WiFi backed by a 100Mbit
+          fiber) and when it was done, Grub was nuked. Not nice. This
+          is one of the reasons I don't run Windows on my main
+          machine.
+        </p>
 
         <!--- ========================================================= --->
         <h2>
