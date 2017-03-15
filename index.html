@@ -27,6 +27,123 @@
 
       <div id='articles'>
         <!--- ========================================================= --->
+        <h2>Using 'fwknop' on OpenWRT</h2>
+        <p class='posted'>
+          <em>Posted March 15th. 2017</em></p>
+
+        <p>
+          I use <a href='www.cipherdyne.org/fwknop/'>fwknop</a> to limit
+          network access to a server behind an TP-Link Archer C7
+          running OpenWRT. Configuring 'fwknop' was fiddly, so
+          I've written down how I got it working.
+        </p>
+
+        <h3>TP-Link Archer C7</h3>
+        <p>
+          I chose the Archer C7 v2.0 because it's listed as working by
+          OpenWRT, it has four GbE ports and a reasonably fast CPU,
+          it's popular and relatively cheap.
+        </p>
+
+        <h3>OpenWRT</h3>
+        <p>
+          I like OpenWRT, mostly because it lets me SSH in to the
+          access point and run things like 'tcpdump'. Installing on
+          the Archer C7 was not straightforward. Installing the
+          15.05.1 firmware linked from openwrt.org left me with a
+          device which didn't even answer 'ping'. Fortunately, there's
+          a 'recovery mode' which re-flashes the device over TFTP.
+          Flashing bleeding edge (50104) 'trunk' OpenWRT firmware
+          fixed it. Instructions are easily googled, so I won't link them.
+        </p>
+
+
+        <h3>fwknop: what's the idea?</h3>
+
+        <p>
+          I have an SSH and HTTPS server I want to access remotely.
+          But I don't like having apache (HTTPS) open to the internet,
+          partly because any configuration mistakes are likely to be
+          exploited in no time and partly because of possible
+          unpatched vulnerabilities.
+        </p>
+
+        <p>
+          Limiting port-forwarding in OpenWRT to certain IP addresses
+          would improve the situation, but I don't want to do that
+          manually. 'fwknop' automates that.
+        </p>
+
+        <p>
+          'fwknop' works by listening to UDP port 66201 on a firewall.
+          When it sees an UDP packet with the right credentials, it
+          runs 'iptables' commands on the firewall to open up access
+          for a specific host on the outside.
+        </p>
+
+        <h3>Installing fwknop</h3>
+
+        <p>
+          There's a fwknop package for OpenWRT, so 'opkg install
+          fwknop' does it.  Unfortunately, it didn't install cleanly,
+          the post-install script bombed out. Maybe because of that
+          the LUCI interface didn't seem to work. In any case, I
+          wanted to understand exactly what I was doing, so I
+          configured it manually.
+        </p>
+
+        <p>
+          .fwknoprc (for my home PC):
+        </p>
+        <pre>
+          [tegner]
+          ACCESS                      tcp/443
+          NAT_ACCESS                  10.1.2.3:443
+          SPA_SERVER                  my.firewall.hostname.com
+          KEY_BASE64                  /* secret */
+          HMAC_KEY_BASE64             /* secret */
+          USE_HMAC                    Y
+          RESOLVE_IP_HTTPS            Y
+          WGET_CMD                    /usr/bin/wget
+        </pre>
+
+        <p>'/etc/fwknop/fwknopd.conf' on the firewall required one change:</p>
+        <pre>
+          ENABLE_IPT_FORWARDING       Y;
+        </pre>
+
+        <p>'/etc/fwknop/access.conf' had me confused for a while.
+          First, I didn't realise that 'stanzas' have to go all
+          together down the bottom, i.e. each 'stanza' starts with the
+          SOURCE setting and then other settings. Second, I needed the
+          'FORCE_NAT' option, which isn't documented in the config
+          file 'opkg' installs. In the end my 'stanza' looked like this:
+        </p>
+
+        <pre>
+          SOURCE              ANY
+          OPEN_PORTS          tcp/443
+          REQUIRE_SOURCE_ADDRESS    Y
+          FW_ACCESS_TIMEOUT   500000
+          FORCE_NAT           10.1.2.3 443
+          KEY_BASE64          /* secret */
+          HMAC_KEY_BASE64     /* secret */
+        </pre>
+
+        <p>
+          The 'FORCE_NAT' setting is a bit weird. I initially wanted to
+          use a 'DESTINATION' setting to limit forwarding to one host,
+          but that seemed to cause fwknop to reject all requests.
+          FORCE_NAT seems to ignore the IP address in the request and
+          send to the specified one. Close enough to what I want.
+        </p>
+
+        <p>
+          'fwknop' sends quite a bit of useful debugging information to
+          the log, use 'logread -f' to watch it.
+        </p>
+
+        <!--- ========================================================= --->
         <h2>Watermarking a PDF with ghostscript</h2>
         <p class='posted'>
           <em>Posted December 7th. 2016</em></p>
