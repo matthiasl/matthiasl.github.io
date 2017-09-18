@@ -1,0 +1,517 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN'
+'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>
+<html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
+<head>
+<title>
+Matthias' personal blog</title>
+<link rel='stylesheet' type='text/css' media='screen' href='./style.css'/>
+</head>
+<body>
+<div id='outer'>
+<div id='masthead'>
+<a href='index.html'>Matthias' personal blog</a><br/><span id='subtitle'/></div>
+<div id='articles'>
+<div id='sidebar'>
+<div id='about'>
+<h3>
+ABOUT</h3>
+
+<p>
+ This is my personal blog. I also write on the
+<a href='https://blog.corelatus.com'>Corelatus blog</a>.
+</p>
+matthias@corelatus.com
+</p>
+</div>
+<div id='toc'>
+<h3>
+CATEGORY: All</h3>
+<h4>
+2017</h4>
+<div class='toc_entry'>
+<a href='Using__fwknop__on_OpenWRT.html'>Using 'fwknop' on OpenWRT</a></div>
+<h4>
+2016</h4>
+<div class='toc_entry'>
+<a href='Watermarking_a_PDF_with_ghostscript.html'>Watermarking a PDF with ghostscript</a></div>
+<div class='toc_entry'>
+<a href='OpenWrt_on_a_TP_Link_TL_WR1043N_ND_v3.html'>OpenWrt on a TP-Link TL-WR1043N/ND v3</a></div>
+<div class='toc_entry'>
+<a href='Adjusting_the_external_monitor_backlight.html'>Adjusting the external monitor backlight</a></div>
+<div class='toc_entry'>
+<a href='Fixing_video_tearing_in_X__and_a_glance_at_Wayland___h2_.html'>Fixing video tearing in X (and a glance at Wayland)</h2></a></div>
+<div class='toc_entry'>
+<a href='Using_a__bash__function_to_silence_GTK_3_20.html'>Using a 'bash' function to silence GTK 3.20</a></div>
+<div class='toc_entry'>
+<a href='Having_an_online_resume_without_Linkedin.html'>Having an online resume without Linkedin</a></div>
+</div>
+<div id='categories'>
+<h3>
+CATEGORIES</h3>
+<p>
+<a href='index.html'>All articles(7)</a></p>
+<p>
+<a href='tagged_with_blog.html'>blog(7)</a></p>
+</div>
+</div>
+<h2>
+Using 'fwknop' on OpenWRT</h2>
+<p class='posted'>
+<em>Posted March 15th 2017</em></p>
+<p>
+  I use <a href='www.cipherdyne.org/fwknop/'>fwknop</a> to limit
+  network access to a server behind an TP-Link Archer C7
+  running OpenWRT. Configuring 'fwknop' was fiddly, so
+  I've written down how I got it working.
+</p>
+
+<h3>TP-Link Archer C7</h3>
+<p>
+  I chose the Archer C7 v2.0 because it's listed as working by
+  OpenWRT, it has four GbE ports and a reasonably fast CPU,
+  it's popular and relatively cheap.
+</p>
+
+<h3>OpenWRT</h3>
+<p>
+  I like OpenWRT, mostly because it lets me SSH in to the
+  access point and run things like 'tcpdump'. Installing on
+  the Archer C7 was not straightforward. Installing the
+  15.05.1 firmware linked from openwrt.org left me with a
+  device which didn't even answer 'ping'. Fortunately, there's
+  a 'recovery mode' which re-flashes the device over TFTP.
+  Flashing bleeding edge (50104) 'trunk' OpenWRT firmware
+  fixed it. Instructions are easily googled, so I won't link them.
+</p>
+
+
+<h3>fwknop: what's the idea?</h3>
+
+<p>
+  I have an SSH and HTTPS server I want to access remotely.
+  But I don't like having apache (HTTPS) open to the internet,
+  partly because any configuration mistakes are likely to be
+  exploited in no time and partly because of possible
+  unpatched vulnerabilities.
+</p>
+
+<p>
+  Limiting port-forwarding in OpenWRT to certain IP addresses
+  would improve the situation, but I don't want to do that
+  manually. 'fwknop' automates that.
+</p>
+
+<p>
+  'fwknop' works by listening to UDP port 66201 on a firewall.
+  When it sees an UDP packet with the right credentials, it
+  runs 'iptables' commands on the firewall to open up access
+  for a specific host on the outside.
+</p>
+
+<h3>Installing fwknop</h3>
+
+<p>
+  There's a fwknop package for OpenWRT, so 'opkg install
+  fwknop' does it.  Unfortunately, it didn't install cleanly,
+  the post-install script bombed out. Maybe because of that
+  the LUCI interface didn't seem to work. In any case, I
+  wanted to understand exactly what I was doing, so I
+  configured it manually.
+</p>
+
+<p>
+  .fwknoprc (for my home PC):
+</p>
+<pre>
+  [tegner]
+  ACCESS                      tcp/443
+  NAT_ACCESS                  10.1.2.3:443
+  SPA_SERVER                  my.firewall.hostname.com
+  KEY_BASE64                  /* secret */
+  HMAC_KEY_BASE64             /* secret */
+  USE_HMAC                    Y
+  RESOLVE_IP_HTTPS            Y
+  WGET_CMD                    /usr/bin/wget
+</pre>
+
+<p>'/etc/fwknop/fwknopd.conf' on the firewall required one change:</p>
+<pre>
+  ENABLE_IPT_FORWARDING       Y;
+</pre>
+
+<p>'/etc/fwknop/access.conf' had me confused for a while.
+  First, I didn't realise that 'stanzas' have to go all
+  together down the bottom, i.e. each 'stanza' starts with the
+  SOURCE setting and then other settings. Second, I needed the
+  'FORCE_NAT' option, which isn't documented in the config
+  file 'opkg' installs. In the end my 'stanza' looked like this:
+</p>
+
+<pre>
+  SOURCE              ANY
+  OPEN_PORTS          tcp/443
+  REQUIRE_SOURCE_ADDRESS    Y
+  FW_ACCESS_TIMEOUT   500000
+  FORCE_NAT           10.1.2.3 443
+  KEY_BASE64          /* secret */
+  HMAC_KEY_BASE64     /* secret */
+</pre>
+
+<p>
+  The 'FORCE_NAT' setting is a bit weird. I initially wanted to
+  use a 'DESTINATION' setting to limit forwarding to one host,
+  but that seemed to cause fwknop to reject all requests.
+  FORCE_NAT seems to ignore the IP address in the request and
+  send to the specified one. Close enough to what I want.
+</p>
+
+<p>
+  'fwknop' sends quite a bit of useful debugging information to
+  the log, use 'logread -f' to watch it.
+</p>
+<div class='article-terminator'><p><a href='Using__fwknop__on_OpenWRT.html'>Permalink</a> | Tags: <a href='tagged_with_blog.html'>blog</a></p></div><h2>
+Watermarking a PDF with ghostscript</h2>
+<p class='posted'>
+<em>Posted December 7th 2016</em></p>
+<p>
+  Transforming an existing PDF so that it gets something like
+  'Draft' stamped across each page is surprisingly easy with
+  ghostscript. Shell script:
+</p>
+
+<pre>
+#!
+# Add a watermark to a PDF file
+#
+# first argument: the filename
+# second argument: the watermark text (default "watermark")
+
+filename=$1
+watermark=$2
+
+if [ x$2 == x ]; then watermark="watermark"; fi
+
+cat &gt; /tmp/watermark.ps &lt;&lt; HERE
+&lt;&lt;
+   /EndPage
+   {
+     2 eq { pop false }
+     {
+         gsave
+         0.5 .setopacityalpha
+         /Helvetica_Bold 120 selectfont
+         .65 setgray 130 70 moveto 50 rotate ($watermark) show
+         grestore
+         true
+     } ifelse
+   } bind
+&gt;&gt; setpagedevice
+HERE
+
+gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=watermarked_$filename /tmp/watermark.ps $filename
+</pre>
+
+<p>
+  There are three tricks above. First, you have to know about
+  the 'EndPage' hook in postscript. It's code executed at the
+  end of each page. Second, you have to know that the
+  parameter can be 0, 1 or 2, depending on the reason for the
+  'EndPage'. The postscript reference manual explains what the
+  codes mean, but we're interested in all but 2. Third,
+  there's the '.setopacityalpha' operator, which I think only
+  works in PostScript 1.4, but that's OK because that's pretty
+  standard now.
+</p>
+
+<p>
+  (The temporary file is ugly. Sorry.)
+</p>
+<div class='article-terminator'><p><a href='Watermarking_a_PDF_with_ghostscript.html'>Permalink</a> | Tags: <a href='tagged_with_blog.html'>blog</a></p></div><h2>
+OpenWrt on a TP-Link TL-WR1043N/ND v3</h2>
+<p class='posted'>
+<em>Posted December 5th 2016</em></p>
+<p>
+  Getting this to work was surprisingly rough. I ran into
+  trouble with OpenWrt versions, broken old config and
+  interface name confusion. But it's nice now that it works.
+</p>
+
+<h3>Firmware update</h3>
+<p>
+  The current (2016-12) stable version of OpenWrt is "Chaos
+  Calmber 15.05.1". That version has support for v1 and v2 of
+  my access point, but not v3. According to one page I found,
+  you can hack (by editing one byte) the v2 image to install
+  it on a v3 device, but that seemed too risky. I installed
+  a daily snapshot from a few days back instead.
+</p>
+
+<p>
+  I did the install via the CLI, using 'scp' to copy the file
+  to /tmp and 'sysupgrade' to do the install.
+</p>
+
+<h3>LUCI</h3>
+
+<p>
+  Snapshots don't include LUCI, the browser UI. So I installed
+  that with 'opkg update' and 'opkg install luci'.
+</p>
+
+<h3>Old/Broken settings</h3>
+
+<p>
+  Both before and after upgrading, the wired interfaces on
+  the access point worked fine but the wireless was 'disabled'
+  no matter what I did. I couldn't figure out what was wrong and
+  ended up re-installing the firmware via LUCI and unchecking the
+  'retain settings' box. After that, wireless worked.
+</p>
+
+<h3>Guest wireless</h3>
+
+<p>
+  Mostly for fun, I set up an unencrypted guest network alongside
+  my regular network. I did that entirely in LUCI. I put it
+  in its own network, 'guest_nw'. To get that talking to the
+  outside world, I had to add forwarding to the 'wan'.
+</p>
+
+<p>
+  I also installed 'SQM QOS', i.e. 'opkg install ...' and
+  limited the bandwidth for the guest network. It's a bit
+  tricky to figure out which 'interface name' relates to
+  which wireless network, in my case it was 'wlan0-1'.
+</p>
+<div class='article-terminator'><p><a href='OpenWrt_on_a_TP_Link_TL_WR1043N_ND_v3.html'>Permalink</a> | Tags: <a href='tagged_with_blog.html'>blog</a></p></div><h2>
+Adjusting the external monitor backlight</h2>
+<p class='posted'>
+<em>Posted November 30th 2016</em></p>
+<pre>
+  sudo apt-get install i2c-tools
+  sudo modprobe i2c-dev
+  ddccontrol dev:/dev/i2c-7 -r 0x10 -w 15
+</pre>
+
+<p>
+  'i2cdetect -l' is useful for finding if there is an I2C
+  adaptor.  The register number, 0x10, can be read out by
+  running 'ddccontrol' without arguments.
+</p>
+
+<p>
+  Addendum: to make the above work without 'sudo' and without
+  having the manually load a module:</p>
+
+<pre>
+  sudo adduser &lt;username&gt; i2c
+    sudo /bin/sh -c 'echo i2c-dev >> /etc/modules'
+</pre>
+<div class='article-terminator'><p><a href='Adjusting_the_external_monitor_backlight.html'>Permalink</a> | Tags: <a href='tagged_with_blog.html'>blog</a></p></div><h2>
+Fixing video tearing in X (and a glance at Wayland)</h2></h2>
+<p class='posted'>
+<em>Posted November 21st 2016</em></p>
+<p>
+  I've used pretty much the same X setup since 1993. I'm happy
+  with it. I want minimal window decorations, no click to
+  focus and alt+tab to get me a new xterm and three virtual
+  desktops. I don't want menus, status bars, clocks, animated
+  window movement or anything like that.
+</p>
+
+<p>
+  But... one thing was annoying me. When scrolling some sites,
+  such as stack overflow, the browser window gets a diagonal
+  tear in it. It's easiest to see in video, wikipedia has a
+  reasonable <a href='https://en.wikipedia.org/wiki/Screen_tearing'>
+    article with pictures</a>. Fixing this should be easy:
+  redraw the screen during the vertical blanking interval.
+  That's not a new idea, even the Commodore 64 had an
+  interrupt you could trigger when a particular scanline was
+  passed.
+</p>
+
+<p>
+  The fix I ended up using was to create /etc/X11/xorg.conf with
+  the TearFree option set:
+</p>
+
+<pre>
+  # 2016-11-21 Debian default Xorg install doesn't have this file.
+  #            MML added it to get the TearFree option.
+  Section "Device"
+  Identifier "Intel inbuilt graphics"
+  Driver "intel"
+  Option "TearFree" "true"
+  EndSection
+</pre>
+
+<p>
+  Fixes the problem completely. But... before I did that, I
+  also tried a few other fixes.
+</p>
+
+<p>
+  First, I tried switching to 'Wayland'. Wayland is a
+  replacement for X. I've been meaning to take a look at it
+  for a while. It's in Debian testing, so all I did is install
+  'weston', shut down X and start 'weston-launch'. That works
+  fine in the sense that it gets me a display and I can start
+  a terminal in it. But nothing else works. No emacs outside
+  the terminal, no firefox, no mplayer. I could probably get
+  some or all of those to work with some more fiddling, but
+  I'm not <em>that</em> interested. I'll probably take another
+  look at Wayland in a year.
+</p>
+
+<p>
+  Next, I tried running 'compton', which basically does the
+  same thing as the TearFree option in the X server, but at a
+  higher level. Compton changed the colour of my root window,
+  but didn't fix the tearing. I tried the --dbe option and
+  each of the five --vsync options. Didn't work. It also
+  seemed to freeze up twice, getting my machine back required
+  'kill -9' from a console, so I gave on on 'compton' fairly quickly.
+</p>
+
+<p>
+  Finally, I tried the 'xfce4' window manager. It has a
+  non-default option to do compositing, which is again
+  basically the same thing as the TearFree option in the X
+  server. It's in Manager/window manager tweaks/compositor/
+  Works fine, but I didn't really want to switch window managers.
+  I'm perfectly happy with openbox.
+</p>
+<div class='article-terminator'><p><a href='Fixing_video_tearing_in_X__and_a_glance_at_Wayland___h2_.html'>Permalink</a> | Tags: <a href='tagged_with_blog.html'>blog</a></p></div><h2>
+Using a 'bash' function to silence GTK 3.20</h2>
+<p class='posted'>
+<em>Posted October 5th 2016</em></p>
+<p>
+  Emacs and mutt started spewing warnings in my xterms a month
+  or two ago. They look like this:
+</p>
+
+<pre>
+(emacs:7719): Gtk-WARNING **: GtkWindow 0xd32290 is drawn without a current allocation. This should not happen.
+
+(emacs:7719): Gtk-WARNING **: GtkWindow 0xd32290 is drawn without a current allocation. This should not happen.
+
+(emacs:7719): Gtk-WARNING **: EmacsFixed 0xd36130 is drawn without a current allocation. This should not happen.
+
+(emacs:7719): Gtk-WARNING **: EmacsFixed 0xd36130 is drawn without a current allocation. This should not happen.
+</pre>
+
+<p>
+  The warnings annoy me. They're not relevant to what I'm doing;
+  they're a GTK problem or an emacs problem. I silenced the
+  warnings by adding this to my .bashrc:
+</p>
+
+<pre>
+# 2016-10. GTK has an annoying new warning which causes emacs and lots
+# of other X program to spew things like "GtkWindow 0xd34290 is drawn..."
+# on stderr. So we have this function which redirects emacs and mutt stderr
+# to /dev/null
+#
+# We can remove this when GTK disable the warning again, which will
+# probably happen by 2017-06.
+emacs()
+{
+  /usr/bin/emacs $* 2>/dev/null
+}
+
+mutt()
+{
+  /usr/bin/mutt $* 2>/dev/null
+}
+</pre>
+
+<p>
+  This lets me type 'emacs myfile.txt' and get an emacs started
+  which doesn't dump rubbish in my terminal.
+</p>
+
+<p>
+  (I could have used an <i>alias</i> for 'mutt', since I
+  pretty much always run mutt without arguments. But for 'emacs'
+  I had to use a function because I want the arguments passed.)
+</p>
+
+<p>
+  FWIW, here's the
+  <a href='https://mail.gnome.org/archives/commits-list/2016-May/msg06553.html'>
+    commit</a> that made GTK dump debugging information to
+  stderr by default. And here's
+  the <a href='https://git.gnome.org/browse/gtk+/commit/?id=54fdcb3ffac3383432b379f3e16e8cb0086b8101'>commit</a>
+  which fixed it again.
+</p>
+
+<p>
+  Edit 2016-11-21: underlying problem is now fixed in Debian
+  testing, so the above workaround is no longer needed.
+</p>
+<div class='article-terminator'><p><a href='Using_a__bash__function_to_silence_GTK_3_20.html'>Permalink</a> | Tags: <a href='tagged_with_blog.html'>blog</a></p></div><h2>
+Having an online resume without Linkedin</h2>
+<p class='posted'>
+<em>Posted September 14th 2016</em></p>
+<p>
+  I've reduced my LinkedIn network to zero contacts, by hitting
+  'remove' on each contact. That lets me keep a LinkedIn account to
+  view people's profiles without having to wade through bogus
+  endorsements and easily ignore Linkedin nagging me to expand my
+  network.
+</p>
+
+<p>
+  I figure I may as well just put my Linkedin profile here, since
+  Linkedin arbitrarily hides it unless you 'upgrade your account'.
+</p>
+
+<div style='background: #e0e0e0; padding: 10px;'>
+  <h3>Matthias Lang</h3>
+
+  <h4>Experience</h4>
+  <p>
+    <strong>Owner</strong><br/>
+    Corelatus<br/>
+    October 2000 &ndash; present (many years)
+  </p>
+
+  <p>
+    I am one of the four co-founders.
+  </p>
+
+  <p>
+    I write software on Corelatus' own hardware, dividing my time
+    roughly evenly between writing for TI DSPs, C on linux and
+    Erlang. Most of that is telecom-specific, e.g. the lower levels of
+    SS7 and ATM and signal processing.
+  </p>
+
+  <p>
+    <strong>Engineer</strong><br/>
+    Ericsson Computer Science Laboratory<br/>
+    Stockholm, Sweden<br/>
+    February 1999 &ndash; September 2000 (1 year 8 months)
+  </p>
+
+  <p>
+    <strong>Engineer</strong><br/>
+    Advanced Services Application Center (joint venture Ericsson and Melbourne IT)<br/>
+    Melbourne, Australia<br/>
+    1997 &ndash; 1999 (2 years)
+  </p>
+
+  <h4>Formal education</h4>
+
+  <p>
+    <strong>University of Melbourne</strong><br/>
+    B.Eng, Elec. Engineering<br/>
+    1992 &ndash; 1996
+  </p>
+</div>
+<div class='article-terminator'><p><a href='Having_an_online_resume_without_Linkedin.html'>Permalink</a> | Tags: <a href='tagged_with_blog.html'>blog</a></p></div></div>
+</div>
+</body>
+</html>

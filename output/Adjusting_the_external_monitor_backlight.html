@@ -1,0 +1,85 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN'
+'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>
+<html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
+<head>
+<title>
+Matthias' personal blog</title>
+<link rel='stylesheet' type='text/css' media='screen' href='./style.css'/>
+</head>
+<body>
+<div id='outer'>
+<div id='masthead'>
+<a href='index.html'>Matthias' personal blog</a><br/><span id='subtitle'/></div>
+<div id='articles'>
+<div id='sidebar'>
+<div id='about'>
+<h3>
+ABOUT</h3>
+
+<p>
+ This is my personal blog. I also write on the
+<a href='https://blog.corelatus.com'>Corelatus blog</a>.
+</p>
+matthias@corelatus.com
+</p>
+</div>
+<div id='toc'>
+<h3>
+CATEGORY: All</h3>
+<h4>
+2017</h4>
+<div class='toc_entry'>
+<a href='Using__fwknop__on_OpenWRT.html'>Using 'fwknop' on OpenWRT</a></div>
+<h4>
+2016</h4>
+<div class='toc_entry'>
+<a href='Watermarking_a_PDF_with_ghostscript.html'>Watermarking a PDF with ghostscript</a></div>
+<div class='toc_entry'>
+<a href='OpenWrt_on_a_TP_Link_TL_WR1043N_ND_v3.html'>OpenWrt on a TP-Link TL-WR1043N/ND v3</a></div>
+<div class='toc_entry'>
+<a href='Adjusting_the_external_monitor_backlight.html'>Adjusting the external monitor backlight</a></div>
+<div class='toc_entry'>
+<a href='Fixing_video_tearing_in_X__and_a_glance_at_Wayland___h2_.html'>Fixing video tearing in X (and a glance at Wayland)</h2></a></div>
+<div class='toc_entry'>
+<a href='Using_a__bash__function_to_silence_GTK_3_20.html'>Using a 'bash' function to silence GTK 3.20</a></div>
+<div class='toc_entry'>
+<a href='Having_an_online_resume_without_Linkedin.html'>Having an online resume without Linkedin</a></div>
+</div>
+<div id='categories'>
+<h3>
+CATEGORIES</h3>
+<p>
+<a href='index.html'>All articles(7)</a></p>
+<p>
+<a href='tagged_with_blog.html'>blog(7)</a></p>
+</div>
+</div>
+<h2>
+Adjusting the external monitor backlight</h2>
+<p class='posted'>
+<em>Posted November 30th 2016</em></p>
+<pre>
+  sudo apt-get install i2c-tools
+  sudo modprobe i2c-dev
+  ddccontrol dev:/dev/i2c-7 -r 0x10 -w 15
+</pre>
+
+<p>
+  'i2cdetect -l' is useful for finding if there is an I2C
+  adaptor.  The register number, 0x10, can be read out by
+  running 'ddccontrol' without arguments.
+</p>
+
+<p>
+  Addendum: to make the above work without 'sudo' and without
+  having the manually load a module:</p>
+
+<pre>
+  sudo adduser &lt;username&gt; i2c
+    sudo /bin/sh -c 'echo i2c-dev >> /etc/modules'
+</pre>
+<div class='article-terminator'><p><a href='Adjusting_the_external_monitor_backlight.html'>Permalink</a> | Tags: <a href='tagged_with_blog.html'>blog</a></p></div></div>
+</div>
+</body>
+</html>
