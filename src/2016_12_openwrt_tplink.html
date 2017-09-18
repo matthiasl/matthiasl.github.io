@@ -1,0 +1,57 @@
+Title: OpenWrt on a TP-Link TL-WR1043N/ND v3
+Tags: blog
+Date: 5. December 2016
+
+<p>
+  Getting this to work was surprisingly rough. I ran into
+  trouble with OpenWrt versions, broken old config and
+  interface name confusion. But it's nice now that it works.
+</p>
+
+<h3>Firmware update</h3>
+<p>
+  The current (2016-12) stable version of OpenWrt is "Chaos
+  Calmber 15.05.1". That version has support for v1 and v2 of
+  my access point, but not v3. According to one page I found,
+  you can hack (by editing one byte) the v2 image to install
+  it on a v3 device, but that seemed too risky. I installed
+  a daily snapshot from a few days back instead.
+</p>
+
+<p>
+  I did the install via the CLI, using 'scp' to copy the file
+  to /tmp and 'sysupgrade' to do the install.
+</p>
+
+<h3>LUCI</h3>
+
+<p>
+  Snapshots don't include LUCI, the browser UI. So I installed
+  that with 'opkg update' and 'opkg install luci'.
+</p>
+
+<h3>Old/Broken settings</h3>
+
+<p>
+  Both before and after upgrading, the wired interfaces on
+  the access point worked fine but the wireless was 'disabled'
+  no matter what I did. I couldn't figure out what was wrong and
+  ended up re-installing the firmware via LUCI and unchecking the
+  'retain settings' box. After that, wireless worked.
+</p>
+
+<h3>Guest wireless</h3>
+
+<p>
+  Mostly for fun, I set up an unencrypted guest network alongside
+  my regular network. I did that entirely in LUCI. I put it
+  in its own network, 'guest_nw'. To get that talking to the
+  outside world, I had to add forwarding to the 'wan'.
+</p>
+
+<p>
+  I also installed 'SQM QOS', i.e. 'opkg install ...' and
+  limited the bandwidth for the guest network. It's a bit
+  tricky to figure out which 'interface name' relates to
+  which wireless network, in my case it was 'wlan0-1'.
+</p>

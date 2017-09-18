@@ -1,0 +1,68 @@
+Title: Using a 'bash' function to silence GTK 3.20
+Tags: blog
+Date: 5. October 2016
+
+<p>
+  Emacs and mutt started spewing warnings in my xterms a month
+  or two ago. They look like this:
+</p>
+
+<pre>
+(emacs:7719): Gtk-WARNING **: GtkWindow 0xd32290 is drawn without a current allocation. This should not happen.
+
+(emacs:7719): Gtk-WARNING **: GtkWindow 0xd32290 is drawn without a current allocation. This should not happen.
+
+(emacs:7719): Gtk-WARNING **: EmacsFixed 0xd36130 is drawn without a current allocation. This should not happen.
+
+(emacs:7719): Gtk-WARNING **: EmacsFixed 0xd36130 is drawn without a current allocation. This should not happen.
+</pre>
+
+<p>
+  The warnings annoy me. They're not relevant to what I'm doing;
+  they're a GTK problem or an emacs problem. I silenced the
+  warnings by adding this to my .bashrc:
+</p>
+
+<pre>
+# 2016-10. GTK has an annoying new warning which causes emacs and lots
+# of other X program to spew things like "GtkWindow 0xd34290 is drawn..."
+# on stderr. So we have this function which redirects emacs and mutt stderr
+# to /dev/null
+#
+# We can remove this when GTK disable the warning again, which will
+# probably happen by 2017-06.
+emacs()
+{
+  /usr/bin/emacs $* 2>/dev/null
+}
+
+mutt()
+{
+  /usr/bin/mutt $* 2>/dev/null
+}
+</pre>
+
+<p>
+  This lets me type 'emacs myfile.txt' and get an emacs started
+  which doesn't dump rubbish in my terminal.
+</p>
+
+<p>
+  (I could have used an <i>alias</i> for 'mutt', since I
+  pretty much always run mutt without arguments. But for 'emacs'
+  I had to use a function because I want the arguments passed.)
+</p>
+
+<p>
+  FWIW, here's the
+  <a href='https://mail.gnome.org/archives/commits-list/2016-May/msg06553.html'>
+    commit</a> that made GTK dump debugging information to
+  stderr by default. And here's
+  the <a href='https://git.gnome.org/browse/gtk+/commit/?id=54fdcb3ffac3383432b379f3e16e8cb0086b8101'>commit</a>
+  which fixed it again.
+</p>
+
+<p>
+  Edit 2016-11-21: underlying problem is now fixed in Debian
+  testing, so the above workaround is no longer needed.
+</p>

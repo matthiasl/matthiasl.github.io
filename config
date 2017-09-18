@@ -1,0 +1,11 @@
+{title, "Matthias' personal blog"}.
+{subtitle, ""}.
+{output, "output"}.
+{about, "
+<p>
+ This is my personal blog. I also write on the
+<a href='https://blog.corelatus.com'>Corelatus blog</a>.
+</p>
+matthias@corelatus.com
+</p>
+"}.

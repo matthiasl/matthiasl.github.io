@@ -1,0 +1,57 @@
+Title: Watermarking a PDF with ghostscript
+Tags: blog
+Date: 7. December 2016
+
+<p>
+  Transforming an existing PDF so that it gets something like
+  'Draft' stamped across each page is surprisingly easy with
+  ghostscript. Shell script:
+</p>
+
+<pre>
+#!
+# Add a watermark to a PDF file
+#
+# first argument: the filename
+# second argument: the watermark text (default "watermark")
+
+filename=$1
+watermark=$2
+
+if [ x$2 == x ]; then watermark="watermark"; fi
+
+cat &gt; /tmp/watermark.ps &lt;&lt; HERE
+&lt;&lt;
+   /EndPage
+   {
+     2 eq { pop false }
+     {
+         gsave
+         0.5 .setopacityalpha
+         /Helvetica_Bold 120 selectfont
+         .65 setgray 130 70 moveto 50 rotate ($watermark) show
+         grestore
+         true
+     } ifelse
+   } bind
+&gt;&gt; setpagedevice
+HERE
+
+gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=watermarked_$filename /tmp/watermark.ps $filename
+</pre>
+
+<p>
+  There are three tricks above. First, you have to know about
+  the 'EndPage' hook in postscript. It's code executed at the
+  end of each page. Second, you have to know that the
+  parameter can be 0, 1 or 2, depending on the reason for the
+  'EndPage'. The postscript reference manual explains what the
+  codes mean, but we're interested in all but 2. Third,
+  there's the '.setopacityalpha' operator, which I think only
+  works in PostScript 1.4, but that's OK because that's pretty
+  standard now.
+</p>
+
+<p>
+  (The temporary file is ugly. Sorry.)
+</p>

@@ -1,0 +1,45 @@
+#!/usr/bin/perl
+#
+# PERL script to wrap up a single blog post in HTML so that
+# it can be validated. Used by the Makefile.
+use strict;
+
+# The Prefix is all one one line, so that the line numbers in the document end up right.
+sub prefix() {
+	print '<?xml version="1.0" encoding="utf-8"?>';
+	print '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"';
+	print '          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">';
+	print '<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">';
+	print '<head><title>Dummy for the validator</title></head>';
+	print '<body>';
+}
+
+sub suffix() {
+	print << 'HERE'
+</body>
+</html>
+
+HERE
+}
+
+sub body() {
+	my $preamble = 1;
+	my $code = 0;
+
+	while (<>) {
+		if (! /^[a-z,A-Z]+: /) {
+			$preamble = 0;
+		}
+		# chronicle rewrites 'code' sections, so exclude them from validation
+		if (/^<code/) { print "<code>"; $code = 1; }
+		if (/^<\/code>/) { $code = 0; }
+		if (! $preamble) {
+			if ($code) { print "dummy code text\n"; }
+			else { print $_; }
+		}
+	}
+}
+
+prefix();
+body();
+suffix();
