@@ -4,8 +4,9 @@
 {about, "
 <p>
  This is my personal blog. I also write on the
-<a href='https://blog.corelatus.com'>Corelatus blog</a>.
+<a href='https://www.corelatus.com/blog/'>Corelatus blog</a>.
 </p>
+<p>
 matthias@corelatus.com
 </p>
 "}.
