@@ -1,0 +1,141 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN'
+'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>
+<html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
+<head>
+<title>
+Matthias' personal blog</title>
+<link rel='stylesheet' type='text/css' media='screen' href='./style.css'/>
+</head>
+<body>
+<div id='outer'>
+<div id='masthead'>
+<a href='index.html'>Matthias' personal blog</a><br/><span id='subtitle'/></div>
+<div id='articles'>
+<div id='sidebar'>
+<div id='about'>
+<h3>
+ABOUT</h3>
+
+<p>
+ This is my personal blog. I also write on the
+<a href='https://www.corelatus.com/blog/'>Corelatus blog</a>.
+</p>
+<p>
+matthias@corelatus.com
+</p>
+</div>
+<div id='toc'>
+<h3>
+CATEGORY: All</h3>
+<h4>
+2017</h4>
+<div class='toc_entry'>
+<a href='Getting_my_Seagate_NAS_to_mount_again__CIFS_SMB_v_1_0_.html'>Getting my Seagate NAS to mount again (CIFS/SMB v 1.0)</a></div>
+<div class='toc_entry'>
+<a href='Firewall_rules_for_OpenWRT_to_allow_access_to_HTTPS.html'>Firewall rules for OpenWRT to allow access to HTTPS</a></div>
+<div class='toc_entry'>
+<a href='Using__fwknop__on_OpenWRT.html'>Using 'fwknop' on OpenWRT</a></div>
+<h4>
+2016</h4>
+<div class='toc_entry'>
+<a href='Watermarking_a_PDF_with_ghostscript.html'>Watermarking a PDF with ghostscript</a></div>
+<div class='toc_entry'>
+<a href='OpenWrt_on_a_TP_Link_TL_WR1043N_ND_v3.html'>OpenWrt on a TP-Link TL-WR1043N/ND v3</a></div>
+<div class='toc_entry'>
+<a href='Adjusting_the_external_monitor_backlight.html'>Adjusting the external monitor backlight</a></div>
+<div class='toc_entry'>
+<a href='Fixing_video_tearing_in_X__and_a_glance_at_Wayland_.html'>Fixing video tearing in X (and a glance at Wayland)</a></div>
+<div class='toc_entry'>
+<a href='Using_a__bash__function_to_silence_GTK_3_20.html'>Using a 'bash' function to silence GTK 3.20</a></div>
+<div class='toc_entry'>
+<a href='Having_an_online_resume_without_Linkedin.html'>Having an online resume without Linkedin</a></div>
+</div>
+<div id='categories'>
+<h3>
+CATEGORIES</h3>
+<p>
+<a href='index.html'>All articles(9)</a></p>
+<p>
+<a href='tagged_with_blog.html'>blog(9)</a></p>
+</div>
+</div>
+<h2>
+Fixing video tearing in X (and a glance at Wayland)</h2>
+<p class='posted'>
+<em>Posted November 21st 2016</em></p>
+<p>
+  I've used pretty much the same X setup since 1993. I'm happy
+  with it. I want minimal window decorations, no click to
+  focus and alt+tab to get me a new xterm and three virtual
+  desktops. I don't want menus, status bars, clocks, animated
+  window movement or anything like that.
+</p>
+
+<p>
+  But... one thing was annoying me. When scrolling some sites,
+  such as stack overflow, the browser window gets a diagonal
+  tear in it. It's easiest to see in video, wikipedia has a
+  reasonable <a href='https://en.wikipedia.org/wiki/Screen_tearing'>
+    article with pictures</a>. Fixing this should be easy:
+  redraw the screen during the vertical blanking interval.
+  That's not a new idea, even the Commodore 64 had an
+  interrupt you could trigger when a particular scanline was
+  passed.
+</p>
+
+<p>
+  The fix I ended up using was to create /etc/X11/xorg.conf with
+  the TearFree option set:
+</p>
+
+<pre>
+  # 2016-11-21 Debian default Xorg install doesn't have this file.
+  #            MML added it to get the TearFree option.
+  Section "Device"
+  Identifier "Intel inbuilt graphics"
+  Driver "intel"
+  Option "TearFree" "true"
+  EndSection
+</pre>
+
+<p>
+  Fixes the problem completely. But... before I did that, I
+  also tried a few other fixes.
+</p>
+
+<p>
+  First, I tried switching to 'Wayland'. Wayland is a
+  replacement for X. I've been meaning to take a look at it
+  for a while. It's in Debian testing, so all I did is install
+  'weston', shut down X and start 'weston-launch'. That works
+  fine in the sense that it gets me a display and I can start
+  a terminal in it. But nothing else works. No emacs outside
+  the terminal, no firefox, no mplayer. I could probably get
+  some or all of those to work with some more fiddling, but
+  I'm not <em>that</em> interested. I'll probably take another
+  look at Wayland in a year.
+</p>
+
+<p>
+  Next, I tried running 'compton', which basically does the
+  same thing as the TearFree option in the X server, but at a
+  higher level. Compton changed the colour of my root window,
+  but didn't fix the tearing. I tried the --dbe option and
+  each of the five --vsync options. Didn't work. It also
+  seemed to freeze up twice, getting my machine back required
+  'kill -9' from a console, so I gave on on 'compton' fairly quickly.
+</p>
+
+<p>
+  Finally, I tried the 'xfce4' window manager. It has a
+  non-default option to do compositing, which is again
+  basically the same thing as the TearFree option in the X
+  server. It's in Manager/window manager tweaks/compositor/
+  Works fine, but I didn't really want to switch window managers.
+  I'm perfectly happy with openbox.
+</p>
+<div class='article-terminator'><p><a href='Fixing_video_tearing_in_X__and_a_glance_at_Wayland_.html'>Permalink</a> | Tags: <a href='tagged_with_blog.html'>blog</a></p></div></div>
+</div>
+</body>
+</html>
