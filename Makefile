@@ -2,8 +2,11 @@ root_dir_files=style.css
 
 all: validate output/index.html
 
-output/index.html: src/*.html make_blog.beam config output
+output/index.html: src/*.html make_blog.beam config output output/style.css
 	erl -noinput -s make_blog go
+
+output/style.css: style.css
+	cp $< $@
 
 # This rule validates the _input_ HTML. That catches HTML errors
 # in the code I write. See also validation in 'publish'
@@ -18,11 +21,10 @@ src/%.valid: src/%.html
 %.beam: %.erl
 	erlc $<
 
-# Validate the _output_ HTML and copy to the live site. The validation
-# catches errors introduced by the Erlang blog software
+# Validate the _output_ HTML.
 publish:
 	xmllint --valid --noout --nonet output/*html
-	scp -r output/* baco_root:/home/yaws/blog/
+	@echo "To publish, commit the files in 'output' and push to upstream (github)"
 
 clean:
 	rm -rf output/*

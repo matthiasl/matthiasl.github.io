@@ -1,0 +1,140 @@
+/*----------------------------------------------------------------------
+  DIVs
+  ----------------------------------------------------------------------*/
+div#outer {
+    margin: 17px 41px;
+}
+
+div#masthead {
+    color: #666;
+    background-color: white;
+    font-family: Verdana,Geneva,Arial,Sans-serif;
+    font-size: 23pt;
+    font-weight: bold;
+    line-height: 15pt;
+    margin-bottom: 30pt;
+}
+
+div#articles {
+    float: left;
+    font-family: Verdana,Geneva,Arial,Sans-serif;
+}
+
+div#sidebar {
+    float: right;
+    max-width: 25%;
+    margin-left: 15px;
+    font-family: Verdana,Geneva,Arial,Sans-serif;
+    font-style: italic;
+    font-size: 10pt;
+    color: #555;
+}
+
+/*----------------------------------------------------------------------
+  Content
+  ----------------------------------------------------------------------*/
+body {
+    font-size: 11pt;
+    font-family: Verdana,Geneva,Arial,Sans-serif;
+    line-height: 150%;
+}
+
+img {
+    overflow: hidden;
+}
+
+image.miniscope {
+    float: left;
+    margin: 20px;
+}
+
+div.image-container {
+    overflow: auto;
+    min-width: 600px;
+}
+
+div#masthead span#subtitle {
+    font-size: 10pt;
+    font-style: italic;
+}
+
+h2 {
+    font-size: 15pt;
+    line-height: 120%;
+    color: #666;
+    margin-left: -20px;
+}
+
+h3 {
+    color: #666;
+    text-transform: uppercase;
+}
+
+pre {
+    font-size: 9pt;
+    line-height: 120%;
+    overflow:	auto;
+    background:	#e6e6e6;
+
+}
+
+div#articles p,ol,ul,pre {
+    max-width: 60em;
+}
+
+div.article-terminator {
+    margin-top: 24pt;
+    margin-bottom: 80pt;
+    line-height: 1px;
+    border-bottom: dotted;
+    width: 70%;
+}
+
+
+p.posted {
+    margin-top: -12pt;
+    margin-left: -20px;
+    color: #57c;
+}
+
+p.update {
+    overflow: auto;
+    border: 1px solid;
+    padding: 1em;
+    border-color: #666;
+    background:	rgb(230,230,200);
+    font-style: italic;
+}
+
+* {list-style-type: square; }
+
+div.comments {
+    margin-top: 15pt;
+    font-size: 10pt;
+    background: rgb(220,220,180);
+    padding: 10pt;
+}
+
+div#sidebar h3 {
+    border-top: 2px solid;
+    border-bottom: 1px dotted;
+}
+
+div#sidebar p {
+    line-height: 15pt;
+}
+
+div.toc_entry {
+    border-bottom: 1px dotted;
+    border-color: #ccc;
+    margin-bottom: 10px;
+}
+
+div#masthead a {
+    color: #666;
+}
+
+*.bad     { font-weight: bold; color: #ee3344; }
+
+th { background: #d0e0ff;
+     text-align: left; }
