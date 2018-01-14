@@ -1,0 +1,49 @@
+Title: Firewall rules for OpenWRT to allow access to HTTPS
+Tags: blog
+Date: 18. September 2017
+
+<p>
+  I have an HTTPS server behind an OpenWRT access point. I allow
+  access to a couple of IP addresses on the outside. I also want to
+  allow access from all machines on the inside, i.e. 192.168.1.x.
+</p>
+
+<h3>The obvious solution (which doesn't work well)</h3>
+<p>
+  The straightforward solution is to point the browser directly at the
+  intranet, e.g. https://192.168.1.55.  That works, but the browser is
+  unhappy about the certificate being for a different address.
+</p>
+
+<h3>Opening up a hole with OpenWRT's firewall config</h3>
+
+<p>
+  I tried various ways to explain what I wanted to OpenWRT via
+  /etc/config/firewall, e.g.:
+</p>
+<pre>
+  config rule
+        option name 'Allow HTTPS from inside'
+        option src 'lan'
+        option dest_port '443'
+        option proto 'tcp'
+        option target 'ACCEPT'
+        option dest '*'
+</pre>
+
+<p>
+  That doesn't work. I also tried a 'config redirect' and couldn't get
+  that to work either. It's possible that if I fiddle for long enough,
+  I can figure out how to get the right iptables config.
+</p>
+
+
+<h3>Opening a hole directly with IPtables (this works)</h3>
+<p>
+  OpenWRT allows me to have custom iptables rules in /etc/firewall.user:
+</p>
+<pre>
+  iptables --table nat --append zone_lan_postrouting --source 192.168.1.0/8 --destination 192.168.1.3 --protocol tcp -m tcp --dport 443 --match comment --comment mml_xxx --jump SNAT --to 192.168.1.3
+
+iptables --table nat --append zone_lan_prerouting --source 192.168.1.0/8 --destination intranet.corelatus.com --protocol tcp -m tcp --dport 443 --match comment --comment mml_xxx --jump DNAT --to-destination 192.168.1.3:443
+</pre>
