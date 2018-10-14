@@ -1,6 +1,7 @@
 root_dir_files=style.css
 
 all: validate output/index.html
+	cp img/* output/
 
 output/index.html: src/*.html make_blog.beam config output output/style.css
 	erl -noinput -s make_blog go
