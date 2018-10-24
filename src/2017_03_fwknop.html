@@ -46,21 +46,28 @@ Date: 15. March 2017
 </p>
 
 <p>
-  'fwknop' works by listening to UDP port 66201 on a firewall.
-  When it sees an UDP packet with the right credentials, it
-  runs 'iptables' commands on the firewall to open up access
-  for a specific host on the outside.
+  'fwknop' works by having a daemon listen to UDP port 66201 on a
+  firewall. You can see it on the firewall by running 'ps'.  When it
+  sees an UDP packet with the right credentials, it runs 'iptables'
+  commands on the firewall to open up access for a specific host on
+  the outside.
 </p>
 
 <h3>Installing fwknop</h3>
 
 <p>
+  Update 2018-10: Easiest way is 'opkg install luci-app-fwknopd'.
+</p>
+
+<p>
+<del>
   There's a fwknop package for OpenWRT, so 'opkg install
   fwknop' does it.  Unfortunately, it didn't install cleanly,
   the post-install script bombed out. Maybe because of that
   the LUCI interface didn't seem to work. In any case, I
   wanted to understand exactly what I was doing, so I
   configured it manually.
+</del>
 </p>
 
 <p>
