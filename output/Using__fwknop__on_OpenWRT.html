@@ -68,6 +68,66 @@ CATEGORIES</h3>
 Using 'fwknop' on OpenWRT</h2>
 <p class='posted'>
 <em>Posted March 15th 2017</em></p>
+<h3>2023 update: fwknop is broken in OpenWRT 22.03</h3>
+
+<p>
+  OpenWRT 22.03 switched its firewall setup from 'iptables' to
+  'netfilter', but fwknop hasn't been updated, so it won't work. There
+  are a few workarounds:
+</p>
+
+<p>
+  <b>Wait for an update to fwknop.</b> Might happen, might not.
+  It could be done by the (OpenWRT) maintainer of the fwknop package,
+  or by someone with an itch to scratch, or by fwknop upstream. But...
+  the most recent activity in upstream (at cipherdyne.org) is from 2018.
+</p>
+
+<p>
+  <b>Hack around the limitation.</b> Some posts to OpenWRT forums
+  suggest using some netfilter/iptables compatibility modules, but
+  this doesn't seem to work for most people. Another possibility is
+  to use external scripts to update the firewall rules. All of these
+  approaches seem pretty flaky.
+</p>
+
+<p><b>Run 'fwknop' on a server instead of a firewall.</b> This is what
+  I ended up doing.</p>
+
+<p>On the (debian) server, I did a bunch of things:
+  </p>
+  <ul>
+    <li>Installed fwknop-server.</li>
+    <li>Added iptables rules to drop connections by default:
+      <pre>
+        sudo iptables -A INPUT -i eth0 -p tcp --dport 22 -j DROP
+        sudo iptables -A INPUT -i eth0 -p tcp --dport 22 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+      </pre>
+    </li>
+    <li>Installed iptables-persistent, so that the above rules survive reboot.</li>
+    <li>Edited /etc/fwknop/access.conf, in the usual way.</li>
+    <li>Started fwknop, i.e.
+      <pre>
+        sudo systemctl enable fwknop-server
+        sudo systemctl start fwknop-server
+      </pre>
+    </li>
+  </ul>
+
+<p>
+  After doing all that, fwknopd should be running, and it should log
+  things to syslog.
+</p>
+
+<p>On the OpenWRT firewall, I uninstalled fwknop and opened ordinary
+  port forwarding to the debian server, of UDP/62201 and TCP/22. The
+  first is so that fwknop packets get through. The second is the the
+  service I actually want, i.e. SSH.
+</p>
+
+<h3>Original post (2017)</h3>
+
+
 <p>
   I use <a href='www.cipherdyne.org/fwknop/'>fwknop</a> to limit
   network access to a server behind an TP-Link Archer C7
